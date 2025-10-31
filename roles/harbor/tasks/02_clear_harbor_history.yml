@@ -12,10 +12,8 @@
     - { kind: Deployment, name: "harbor-registry" }
     - { kind: StatefulSet, name: "harbor-database" }
     - { kind: StatefulSet, name: "harbor-redis" }
-    - { kind: Pod, name: "prometheus" }
-    - { kind: Pod, name: "node-exporter" }
-    - { kind: Pod, name: "kube-state-metrics" }
-    - { kind: Service, name: "prometheus" }
+    - { kind: Pod, name: "harbor-redis" }
+    - { kind: Service, name: "harbor" }
     - { kind: Service, name: "harbor-core" }
     - { kind: Service, name: "harbor-database" }
     - { kind: Service, name: "harbor-jobservice" }

@@ -2,24 +2,37 @@
 # Harbor Helm Chart 核心配置（基于 v1.18.0）
 
 # 1. 暴露配置（访问方式）
+#expose:
+#  type: nodePort  # 切换为nodePort类型
+#  hostname: {{ master_ip }}
+#  tls:
+#    enabled: true  # 若启用TLS，需配置证书；禁用则设为false
+#    certSource: auto  # 测试用自动生成证书
+#    auto:
+#      commonName: {{ master_ip }}
+#  nodePort:
+#    name: harbor  # Service名称
+#    ports:
+#      http:
+#        port: 80  # 服务内部端口（集群内访问用）
+#        nodePort: 30100  # 节点暴露的HTTP端口（需在30000-32767之间）
+#      https:
+#        port: 443  # 服务内部HTTPS端口
+#        nodePort: 30101  # 节点暴露的HTTPS端口
+#externalURL: https://{{ master_ip }}:30101  # 替换为实际节点IP和HTTPS nodePort
+
 expose:
   type: nodePort  # 切换为nodePort类型
   hostname: {{ master_ip }}
   tls:
-    enabled: true  # 若启用TLS，需配置证书；禁用则设为false
-    certSource: auto  # 测试用自动生成证书
-    auto:
-      commonName: {{ master_ip }}
+    enabled: false  # 若启用TLS，需配置证书；禁用则设为false
   nodePort:
     name: harbor  # Service名称
     ports:
       http:
         port: 80  # 服务内部端口（集群内访问用）
         nodePort: 30100  # 节点暴露的HTTP端口（需在30000-32767之间）
-      https:
-        port: 443  # 服务内部HTTPS端口
-        nodePort: 30101  # 节点暴露的HTTPS端口
-externalURL: https://{{ master_ip }}:30101  # 替换为实际节点IP和HTTPS nodePort
+externalURL: http://{{ master_ip }}:30100  # 替换为实际节点IP和HTTPS nodePort
 
 # 2. 管理员认证配置
 harborAdminPassword: "Harbor12345"  # 默认密码，生产环境务必修改
