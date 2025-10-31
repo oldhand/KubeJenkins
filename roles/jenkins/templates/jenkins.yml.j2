@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: jenkins
+          image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/jenkins/jenkins:2.528.1-lts-jdk17
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          volumeMounts:
+            - name: jenkins-data
+              mountPath: /var/jenkins_home
+            - name: jenkins-plugins
+              mountPath: /var/jenkins_home/plugins
+            - name: init-scripts
+              mountPath: /var/jenkins_home/init.groovy.d
+          env:
+            - name: JAVA_OPTS
+              value: "-Duser.timezone=Asia/Shanghai -Djenkins.install.runSetupWizard=false"
+      volumes:
+        - name: jenkins-data
+          persistentVolumeClaim:
+            claimName: jenkins-pvc
+        - name: jenkins-plugins
+          hostPath:
+            path: /data/jenkins/plugins
+        - name: init-scripts
+          configMap:
+            name: jenkins-init-scripts

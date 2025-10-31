@@ -1,0 +1,158 @@
+---
+- name: 创建 Jenkins 命名空间
+  kubernetes.core.k8s:
+    name: jenkins
+    kind: Namespace
+    api_version: v1
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+
+
+
+- name: "创建 Jenkins 目录"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  loop:
+    - /data/jenkins
+    - /data/jenkins/plugins
+  delegate_to: localhost
+  run_once: true
+
+- name: 复制离线插件到Jenkins插件目录
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/data/jenkins/plugins/{{ item }}"
+    mode: '0644'
+  loop:
+    - localization-zh-cn.hpi
+    - localization-support.hpi
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Jenkins Storage PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: jenkins-storage
+      spec:
+        capacity:
+          storage: "10Gi"
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: jenkins-storage
+        hostPath:
+          path: "/data/jenkins"
+          type: DirectoryOrCreate
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Jenkins Storage PVC
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: jenkins-pvc
+        namespace: jenkins
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "10Gi"
+        storageClassName: jenkins-storage
+  delegate_to: localhost
+  run_once: true
+
+- name: 定义 Jenkins 管理员账号密码变量
+  set_fact:
+    jenkins:
+      admin:
+        username: "admin"  # 可改为自定义用户名
+        password: "admin"  # 建议使用更安全的密码
+  delegate_to: localhost
+  run_once: true
+
+- name: 生成 Jenkins 初始化脚本
+  template:
+    src: "init_jenkins.groovy.j2"
+    dest: "/tmp/init_jenkins.groovy"
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 创建 Jenkins 初始化脚本 ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: jenkins-init-scripts
+        namespace: jenkins
+      data:
+        init_jenkins.groovy: "{{ lookup('file', '/tmp/init_jenkins.groovy') }}"
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 渲染单节点 Jenkins
+  ansible.builtin.template:
+    src: "jenkins.yml.j2"
+    dest: /tmp/jenkins.yaml
+    mode: '0644'
+  delegate_to: localhost
+  run_once: true
+
+- name: 应用 Jenkins 的 Deployment
+  kubernetes.core.k8s:
+    src: /tmp/jenkins.yaml
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Jenkins NodePort Service
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: jenkins
+        namespace: jenkins
+      spec:
+        type: NodePort
+        selector:
+          app: jenkins
+        ports:
+          - port: 8080
+            targetPort: 8080
+            nodePort: 30101
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 等待Jenkins Pod就绪
+  k8s_info:
+    kind: Pod
+    namespace: jenkins
+    label_selectors:
+      - app=jenkins
+  register: jenkins_pod
+  until: >
+    jenkins_pod.resources is defined 
+    and jenkins_pod.resources | length > 0 
+    and jenkins_pod.resources[0].status.phase == 'Running'
+  retries: 30  # 最多重试30次
+  delay: 10    # 每次间隔10秒
+  delegate_to: localhost
+  run_once: true
+

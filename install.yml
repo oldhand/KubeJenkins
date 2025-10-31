@@ -4,7 +4,7 @@
   roles:
 #     Install harbor for k8s
     - harbor
-#     Install ceph for k8s
-#    - ceph
+#     Install jenkins for k8s
+    - jenkins
 
 

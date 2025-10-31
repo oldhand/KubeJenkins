@@ -1,0 +1,31 @@
+// 管理员账号密码配置
+import jenkins.model.*
+import hudson.security.*
+import jenkins.security.s2m.AdminWhitelistRule
+
+def instance = Jenkins.getInstance()
+
+// 设置管理员账号密码
+def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+hudsonRealm.createAccount("{{ jenkins.admin.username }}", "{{ jenkins.admin.password }}")
+instance.setSecurityRealm(hudsonRealm)
+
+// 权限配置（允许管理员全权管理）
+def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+strategy.setAllowAnonymousRead(false)
+instance.setAuthorizationStrategy(strategy)
+
+// 配置中文语言
+def locale = new Locale("zh", "CN")
+def descriptor = instance.getDescriptorByType(hudson.model.DisplayNameProvider.DescriptorImpl.class)
+descriptor.setDefaultLocale(locale.toString())
+
+// 禁用自动更新
+def updateCenter = Jenkins.instance.getUpdateCenter()
+updateCenter.setNeverUpdate(true)
+
+// 禁用插件自动更新检查
+Jenkins.instance.setDisableAutomaticSetupWizard(true)
+
+instance.save()
+Jenkins.instance.restart()
