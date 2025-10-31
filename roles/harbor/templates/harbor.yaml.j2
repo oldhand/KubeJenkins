@@ -1,0 +1,155 @@
+# /tmp/harbor.yaml
+# Harbor Helm Chart 核心配置（基于 v1.18.0）
+
+# 1. 暴露配置（访问方式）
+expose:
+  type: nodePort  # 切换为nodePort类型
+  hostname: {{ master_ip }}
+  tls:
+    enabled: true  # 若启用TLS，需配置证书；禁用则设为false
+    certSource: auto  # 测试用自动生成证书
+    auto:
+      commonName: {{ master_ip }}
+  nodePort:
+    name: harbor  # Service名称
+    ports:
+      http:
+        port: 80  # 服务内部端口（集群内访问用）
+        nodePort: 30100  # 节点暴露的HTTP端口（需在30000-32767之间）
+      https:
+        port: 443  # 服务内部HTTPS端口
+        nodePort: 30101  # 节点暴露的HTTPS端口
+externalURL: https://{{ master_ip }}:30101  # 替换为实际节点IP和HTTPS nodePort
+
+# 2. 管理员认证配置
+harborAdminPassword: "Harbor12345"  # 默认密码，生产环境务必修改
+# 数据库密码（内置PostgreSQL）
+database:
+  password: "Harbor12345"  # 建议修改
+  # 数据库持久化配置（见下方persistence）
+  internal:
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+# 3. 持久化存储配置（关键！需匹配K8s集群中的存储类）
+persistence:
+  enabled: true  # 启用持久化（必须，否则数据会丢失）
+  # 存储类名称（需提前在K8s中创建，如local-path、nfs等）
+  # 若集群无默认存储类，需显式指定
+  resourcePolicy: "keep"
+  # 各组件存储大小
+  persistentVolumeClaim:
+    registry:
+      storageClass: "harbor-registry"
+    jobservice:
+      jobLog:
+        storageClass: "harbor-jobservice"
+    database:
+      storageClass: "harbor-database"
+    redis:
+      storageClass: "harbor-redis"
+    trivy:
+      storageClass: "harbor-trivy"
+
+
+# 4. 组件配置（默认启用内置组件，离线环境无需外部依赖）
+# 内置PostgreSQL（禁用外部数据库）
+postgresql:
+  enabled: true
+  # 外部数据库配置（若禁用内置，需开启下方）
+  # external:
+  #   host: "external-postgres"
+  #   port: "5432"
+  #   user: "harbor"
+  #   password: "external-postgres-password"
+  #   database: "registry"
+
+# 内置Redis（禁用外部Redis）
+redis:
+  enabled: true
+  # 外部Redis配置（若禁用内置，需开启下方）
+  # external:
+  #   host: "external-redis"
+  #   port: "6379"
+  #   password: "external-redis-password"
+  internal:
+    tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+# 5. 功能开关（默认关闭非必要功能，减少资源占用）
+# 漏洞扫描（Trivy）：离线环境需提前加载Trivy镜像和数据库
+trivy:
+  enabled: false  # 首次部署可关闭，后续按需启用
+  # 离线扫描配置（若启用）
+  # offlineScan: true
+  # skipUpdate: true  # 不更新漏洞库（离线环境）
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+# 内容信任（Notary）：签名验证功能
+notary:
+  enabled: false  # 首次部署可关闭
+
+# Chart仓库（ChartMuseum）
+chartmuseum:
+  enabled: true  # 启用Helm Chart仓库功能
+
+# 6. 镜像配置（离线环境关键：禁止从外部拉取镜像）
+imagePullPolicy: "Never"  # 仅使用本地已加载的镜像，不在线拉取
+# 镜像标签（需与离线加载的镜像版本一致）
+imageTag: "v2.14.0"  # Harbor应用版本（需匹配Helm Chart版本）
+
+# 7. 资源限制（避免占用过多节点资源）
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+# 8. 其他配置
+logLevel: info  # 日志级别：debug/info/warn/error
+
+
+# 为所有 Harbor 组件添加容忍策略（适配控制平面节点污点）
+core:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+nginx:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+portal:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+jobservice:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+registry:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+exporter:
+  tolerations:
+    - key: "node-role.kubernetes.io/control-plane"
+      operator: "Exists"
+      effect: "NoSchedule"

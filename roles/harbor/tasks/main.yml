@@ -1,0 +1,4 @@
+---
+- include_tasks: 01_deploy_harbor_images.yml
+- include_tasks: 02_clear_harbor_history.yml
+- include_tasks: 03_deploy_harbor.yml

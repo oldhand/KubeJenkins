@@ -1,0 +1,64 @@
+#---
+- name: 清理 Harbor 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n harbor --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n harbor --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "harbor-core" }
+    - { kind: Deployment, name: "harbor-jobservice" }
+    - { kind: Deployment, name: "harbor-nginx" }
+    - { kind: Deployment, name: "harbor-portal" }
+    - { kind: Deployment, name: "harbor-registry" }
+    - { kind: StatefulSet, name: "harbor-database" }
+    - { kind: StatefulSet, name: "harbor-redis" }
+    - { kind: Pod, name: "prometheus" }
+    - { kind: Pod, name: "node-exporter" }
+    - { kind: Pod, name: "kube-state-metrics" }
+    - { kind: Service, name: "prometheus" }
+    - { kind: Service, name: "harbor-core" }
+    - { kind: Service, name: "harbor-database" }
+    - { kind: Service, name: "harbor-jobservice" }
+    - { kind: Service, name: "harbor-portal" }
+    - { kind: Service, name: "harbor-redis" }
+    - { kind: Service, name: "harbor-registry" }
+    - { kind: ConfigMap, name: "harbor-jobservice" }
+    - { kind: ConfigMap, name: "harbor-jobservice-env" }
+    - { kind: ConfigMap, name: "harbor-nginx" }
+    - { kind: ConfigMap, name: "harbor-portal" }
+    - { kind: ConfigMap, name: "harbor-registry" }
+    - { kind: ConfigMap, name: "harbor-registryctl" }
+    - { kind: Secret, name: "harbor-core" }
+    - { kind: Secret, name: "harbor-database" }
+    - { kind: Secret, name: "harbor-jobservice" }
+    - { kind: Secret, name: "harbor-registry" }
+    - { kind: Secret, name: "harbor-registry-htpasswd" }
+    - { kind: Secret, name: "harbor-registryctl" }
+    - { kind: Secret, name: "sh.helm.release.v1.harbor.v1" }
+    - { kind: ServiceAccount, name: "default" }
+    - { kind: PersistentVolumeClaim, name: "harbor-jobservice" }
+    - { kind: PersistentVolumeClaim, name: "harbor-registry" }
+    - { kind: PersistentVolumeClaim, name: "data-harbor-redis-0" }
+    - { kind: PersistentVolumeClaim, name: "data-harbor-trivy-0" }
+    - { kind: PersistentVolumeClaim, name: "database-data-harbor-database-0" }
+  failed_when: false
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 清理 Harbor 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "harbor-database" }
+    - { kind: PersistentVolume, name: "harbor-redis" }
+    - { kind: PersistentVolume, name: "harbor-registry" }
+    - { kind: PersistentVolume, name: "harbor-jobservice" }
+  failed_when: false
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+

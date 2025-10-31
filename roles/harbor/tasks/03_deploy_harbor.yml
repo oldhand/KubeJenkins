@@ -1,0 +1,161 @@
+---
+- name: 创建 Harbor 命名空间
+  kubernetes.core.k8s:
+    name: harbor
+    kind: Namespace
+    api_version: v1
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+
+
+
+- name: "创建 Harbor 目录"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0777'
+  loop:
+    - /data/harbor
+    - /data/harbor/database
+    - /data/harbor/jobservice
+    - /data/harbor/redis
+    - /data/harbor/registry
+
+- name: 创建 Harbor DataBase PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: harbor-database
+      spec:
+        capacity:
+          storage: "1Gi"
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: harbor-database
+        hostPath:
+          path: "/data/harbor/database"
+          type: DirectoryOrCreate
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Harbor Jobservice PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: harbor-jobservice
+      spec:
+        capacity:
+          storage: "1Gi"
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: harbor-jobservice
+        hostPath:
+          path: "/data/harbor/jobservice"
+          type: DirectoryOrCreate
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Harbor Redis PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: harbor-redis
+      spec:
+        capacity:
+          storage: "1Gi"
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: harbor-redis
+        hostPath:
+          path: "/data/harbor/redis"
+          type: DirectoryOrCreate
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 Harbor Registry PV
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: harbor-registry
+      spec:
+        capacity:
+          storage: "20Gi"
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: harbor-registry
+        hostPath:
+          path: "/data/harbor/registry"
+          type: DirectoryOrCreate
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 获取主节点 IP（通过 kubectl）
+  ansible.builtin.command:
+    cmd: kubectl get nodes -l "node-role.kubernetes.io/control-plane" -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}'
+  register: master_ip_raw
+  delegate_to: localhost
+  run_once: true
+
+- name: 提取主节点 IP
+  ansible.builtin.set_fact:
+    master_ip: "{{ master_ip_raw.stdout | trim }}"
+  run_once: true
+
+- name: 复制 harbor.yaml 配置文件到临时目录
+  ansible.builtin.template:
+    src: harbor.yaml.j2
+    dest: /tmp/harbor.yaml
+  delegate_to: localhost
+  run_once: true
+
+- name: Uninstall Harbor using Helm
+  command: >
+    /usr/local/bin/helm uninstall harbor --namespace harbor
+  register: uninstall_harbor
+  changed_when: "'uninstalled' in uninstall_harbor.stdout"
+  failed_when:
+    - uninstall_harbor.rc != 0
+    - "'not found' not in uninstall_harbor.stderr"
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+
+
+- name: Install Harbor from local Helm Chart
+  command: >
+    /usr/local/bin/helm install harbor /tmp/harbor-1.18.0.tgz \
+      --namespace harbor \
+      --create-namespace \
+      -f /tmp/harbor.yaml
+  register: install_harbor
+  changed_when: "'installed' in install_harbor.stdout"
+  failed_when:
+    - install_harbor.rc != 0
+    - "'already exists' not in install_harbor.stderr"
+  run_once: true
+
+- name: 等待Harbor所有Pod就绪
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: harbor
+  register: harbor_pods
+  until: >
+    harbor_pods.resources | length > 0 and
+    harbor_pods.resources | map(attribute='status.phase') | unique == ['Running']
+  retries: 30  # 重试30次
+  delay: 10    # 每次间隔10秒

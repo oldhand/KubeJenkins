@@ -1,0 +1,73 @@
+---
+- name: 创建临时目录存放镜像文件
+  file:
+    path: "/tmp/harbor"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+  run_once: true
+
+- name: 检查 harbor.v2.14.0.tar 镜像文件是否存在
+  stat:
+    path: "{{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.v2.14.0.tar"
+  register: harbor_tar_stat
+  delegate_to: localhost
+  run_once: true
+
+- name: 合并分卷并解压生成镜像文件
+  shell: |
+    # 合并分卷为完整zip文件
+    cat {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.001 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.002 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.003 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.004 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.005 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.006 \
+        {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip.007 \
+        > {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip
+    
+    # 解压zip到目标目录（确保tar直接生成在该目录）
+    unzip -q -o {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip \
+          -d {{ playbook_dir }}/harbor/{{ ansible_architecture }}/
+    
+    # 清理临时zip文件
+    rm -f {{ playbook_dir }}/harbor/{{ ansible_architecture }}/harbor.zip
+  delegate_to: localhost
+  run_once: true
+  when: not harbor_tar_stat.stat.exists
+
+- name: 复制 harbor.v2.14.0.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/harbor/{{ ansible_architecture }}/{{ item }}"
+    dest: "/tmp/{{ item }}"
+    mode: 0644
+    directory_mode: 0755
+    remote_src: no
+    force: yes
+  with_items:
+    - "harbor.v2.14.0.tar"
+  delegate_to: localhost
+  run_once: true
+
+- name: 加载 harbor.v2.14.0.tar 镜像到 Docker
+  shell: "docker load -i /tmp/{{ item }}"
+  with_items:
+    - "harbor.v2.14.0.tar"
+  delegate_to: localhost
+  run_once: true
+
+- name: 复制 harbor-1.18.0.tgz 镜像文件到临时目录
+  copy:
+    src: "harbor-1.18.0.tgz"
+    dest: "/tmp/harbor-1.18.0.tgz"
+  delegate_to: localhost
+  run_once: true
+
+- name: 复制 harbor.yaml 镜像文件到临时目录
+  copy:
+    src: "harbor.yaml"
+    dest: "/tmp/harbor.yaml"
+  delegate_to: localhost
+  run_once: true
+
+
