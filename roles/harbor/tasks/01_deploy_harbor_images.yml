@@ -63,11 +63,5 @@
   delegate_to: localhost
   run_once: true
 
-- name: 复制 harbor.yaml 镜像文件到临时目录
-  copy:
-    src: "harbor.yaml"
-    dest: "/tmp/harbor.yaml"
-  delegate_to: localhost
-  run_once: true
 
 
