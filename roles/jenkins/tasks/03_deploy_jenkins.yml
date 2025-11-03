@@ -8,9 +8,6 @@
   delegate_to: localhost
   run_once: true
 
-
-
-
 - name: "创建 Jenkins 目录"
   ansible.builtin.file:
     path: "{{ item }}"
@@ -19,8 +16,6 @@
   loop:
     - /data/jenkins
     - /data/jenkins/plugins
-  delegate_to: localhost
-  run_once: true
 
 - name: 复制离线插件到Jenkins插件目录
   ansible.builtin.copy:
@@ -30,8 +25,7 @@
   loop:
     - localization-zh-cn.hpi
     - localization-support.hpi
-  delegate_to: localhost
-  run_once: true
+
 
 - name: 创建 Jenkins Storage PV
   kubernetes.core.k8s:
