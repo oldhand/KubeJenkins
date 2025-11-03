@@ -1,23 +1,23 @@
 ---
-- name: 检查镜像文件 webssh2_0.4.6.tar 是否存在
+- name: 检查镜像文件 webssh2_latest.tar 是否存在
   stat:
-    path: "{{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_0.4.6.tar"
+    path: "{{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_latest.tar"
   register: target_tar_stat
   delegate_to: localhost
   run_once: true
 
-- name: 解压镜像文件 webssh2_0.4.6.tar.gz
+- name: 解压镜像文件 webssh2_latest.tar.gz
   shell: |
-    tar xzvf {{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_0.4.6.tar.gz -C {{ playbook_dir }}/webssh2/{{ ansible_architecture }}/
+    tar xzvf {{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_latest.tar.gz -C {{ playbook_dir }}/webssh2/{{ ansible_architecture }}/
   when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
   delegate_to: localhost
   run_once: true
 
-- name: 复制 webssh2_0.4.6.tar 镜像文件到临时目录
+- name: 复制 webssh2_latest.tar 镜像文件到临时目录
   copy:
-    src: "{{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_0.4.6.tar"
-    dest: "/tmp/webssh2_0.4.6.tar"
+    src: "{{ playbook_dir }}/webssh2/{{ ansible_architecture }}/webssh2_latest.tar"
+    dest: "/tmp/webssh2_latest.tar"
     mode: 0644
 
-- name: 加载 webssh2_0.4.6.tar 镜像到Docker
-  shell: "docker load -i /tmp/webssh2_0.4.6.tar"
+- name: 加载 webssh2_latest.tar 镜像到Docker
+  shell: "docker load -i /tmp/webssh2_latest.tar"
