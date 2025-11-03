@@ -1,0 +1,18 @@
+#---
+- name: 清理 Webssh2 资源
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n terminal-system --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n terminal-system --ignore-not-found
+  loop:
+    - { kind: DaemonSet, name: "kube-node-webssh" }
+    - { kind: Pod, name: "kube-node-webssh" }
+    - { kind: Service, name: "kube-node-webssh" }
+    - { kind: ConfigMap, name: "webssh2-config" }
+  failed_when: false
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+
+
+

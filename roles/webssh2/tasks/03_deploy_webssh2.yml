@@ -1,0 +1,92 @@
+---
+- name: 创建 Webssh2 命名空间
+  kubernetes.core.k8s:
+    name: terminal-system
+    kind: Namespace
+    api_version: v1
+    state: present
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 复制 config.jsonl 部署文件
+  copy:
+    src: "files/config.json"
+    dest: "/tmp/config.json"
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 创建包含 config.json 的 ConfigMap
+  kubernetes.core.k8s:
+    kind: ConfigMap
+    name: webssh2-config
+    namespace: terminal-system
+    state: present
+    definition:
+      data:
+        config.json: "{{ lookup('file', '/tmp/config.json') }}"
+  delegate_to: localhost
+  run_once: true
+
+
+- name: 部署 webssh2
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: DaemonSet
+      metadata:
+        name: kube-node-webssh
+        namespace: terminal-system
+        labels:
+          name: kube-node-webssh
+      spec:
+        selector:
+          matchLabels:
+            name: kube-node-webssh
+        template:
+          metadata:
+            labels:
+              name: kube-node-webssh
+          spec:
+            tolerations:
+              - key: node-role.kubernetes.io/master
+                effect: NoSchedule
+            containers:
+              - name: kube-node-webssh
+                image: ghcr.io/billchurch/webssh2:latest
+                imagePullPolicy: IfNotPresent
+                ports:
+                  - containerPort: 2222
+                volumeMounts:
+                  - name: config-volume
+                    mountPath: /usr/src/config.json
+                    subPath: config.json
+            volumes:
+              - name: config-volume
+                configMap:
+                  name: webssh2-config
+  delegate_to: localhost
+  run_once: true
+
+- name: 创建 webssh2 NodePort (30093) 服务
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: kube-node-webssh
+        namespace: terminal-system
+      spec:
+        selector:
+          app: ube-node-webssh
+        ports:
+          - port: 2222
+            protocol: TCP
+            targetPort: 2222
+            nodePort: 30102
+        type: NodePort
+  delegate_to: localhost
+  run_once: true

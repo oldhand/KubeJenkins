@@ -1,0 +1,30 @@
+{
+  "listen": {
+    "ip": "0.0.0.0",
+    "port": 2222
+  },
+  "user": {
+    "overridebasic": true
+  },
+  "ssh": {
+    "host": "127.0.0.1",
+    "port": 22,
+    "term": "xterm-color",
+    "readyTimeout": 20000,
+    "keepaliveInterval": 120000,
+    "keepaliveCountMax": 10
+  },
+  "options": {
+    "challengeButton": true,
+    "allowreauth": true
+  },
+  "header": {
+    "text": "Kube Node WebSSH",
+    "background": "green"
+  },
+  "socketio": {
+    "serveClient": true,
+    "path": "/ssh/socket.io",
+    "origins": ["*:*"]
+  }
+}

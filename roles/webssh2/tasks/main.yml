@@ -1,0 +1,4 @@
+---
+- include_tasks: 01_deploy_webssh2_images.yml
+- include_tasks: 02_clear_webssh2_history.yml
+- include_tasks: 03_deploy_webssh2.yml

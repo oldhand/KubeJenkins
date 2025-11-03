@@ -6,5 +6,6 @@
     - harbor
 #     Install jenkins for k8s
     - jenkins
-
+#     Install webssh2 for k8s
+    - webssh2
 
