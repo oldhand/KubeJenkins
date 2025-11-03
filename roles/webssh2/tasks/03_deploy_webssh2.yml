@@ -16,19 +16,19 @@
   delegate_to: localhost
   run_once: true
 
-
-- name: 创建包含 config.json 的 ConfigMap
+- name: 创建 config.json 的 ConfigMap
   kubernetes.core.k8s:
-    kind: ConfigMap
-    name: webssh2-config
-    namespace: terminal-system
     state: present
     definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: webssh2-config
+        namespace: terminal-system
       data:
         config.json: "{{ lookup('file', '/tmp/config.json') }}"
   delegate_to: localhost
   run_once: true
-
 
 - name: 部署 webssh2
   kubernetes.core.k8s:
