@@ -70,7 +70,7 @@
   delegate_to: localhost
   run_once: true
 
-- name: 创建 webssh2 NodePort (30093) 服务
+- name: 创建 webssh2 NodePort (30102) 服务
   kubernetes.core.k8s:
     state: present
     definition:
