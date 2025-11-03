@@ -81,7 +81,7 @@
         namespace: terminal-system
       spec:
         selector:
-          app: kube-node-webssh
+          name: kube-node-webssh
         ports:
           - port: 2222
             protocol: TCP
