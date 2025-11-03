@@ -47,7 +47,7 @@
 - name: 加载 jenkins_lts.tar 镜像到 Docker
   shell: "docker load -i /tmp/{{ item }}"
   with_items:
-    - "jenkins_lts.tar"
+    - "jenkins_2.528.1-lts-jdk17.tar"
 
 
 
