@@ -46,13 +46,12 @@
     force: yes
   with_items:
     - "harbor.v2.14.0.tar"
-  run_once: true
+
 
 - name: 加载 harbor.v2.14.0.tar 镜像到 Docker
   shell: "docker load -i /tmp/{{ item }}"
   with_items:
     - "harbor.v2.14.0.tar"
-  run_once: true
 
 - name: 复制 harbor-1.18.0.tgz 镜像文件到临时目录
   copy:
