@@ -55,7 +55,7 @@
                 effect: NoSchedule
             containers:
               - name: kube-node-webssh
-                image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/billchurch/webssh2:0.4.6
+                image: ghcr.io/billchurch/webssh2:latest
                 imagePullPolicy: IfNotPresent
                 ports:
                   - containerPort: 2222
