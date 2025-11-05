@@ -25,7 +25,60 @@
   loop:
     - localization-zh-cn.hpi
     - localization-support.hpi
-
+    - antisamy-markup-formatter.hpi
+    - apache-httpcomponents-client-4-api.hpi
+    - asm-api.hpi
+    - bootstrap5-api.hpi
+    - bouncycastle-api.hpi
+    - caffeine-api.hpi
+    - checks-api.hpi
+    - commons-lang3-api.hpi
+    - commons-text-api.hpi
+    - credentials.hpi
+    - credentials-binding.hpi
+    - display-url-api.hpi
+    - docker-commons.hpi
+    - docker-plugin.hpi
+    - docker-workflow.hpi
+    - echarts-api.hpi
+    - font-awesome-api.hpi
+    - git.hpi
+    - git-client.hpi
+    - gitea.hpi
+    - gitee.hpi
+    - github.hpi
+    - github-api.hpi
+    - gitlab-plugin.hpi
+    - gson-api.hpi
+    - instance-identity.hpi
+    - ionicons-api.hpi
+    - jackson2-api.hpi
+    - jakarta-activation-api.hpi
+    - jakarta-mail-api.hpi
+    - jakarta-xml-bind-api.hpi
+    - javax-activation-api.hpi
+    - jaxb.hpi
+    - jquery3-api.hpi
+    - json-api.hpi
+    - junit.hpi
+    - mailer.hpi
+    - matrix-project.hpi
+    - mina-sshd-api-common.hpi
+    - mina-sshd-api-core.hpi
+    - plain-credentials.hpi
+    - plugin-util-api.hpi
+    - prism-api.hpi
+    - scm-api.hpi
+    - script-security.hpi
+    - snakeyaml-api.hpi
+    - ssh-credentials.hpi
+    - structs.hpi
+    - variant.hpi
+    - workflow-api.hpi
+    - workflow-job.hpi
+    - workflow-scm-step.hpi
+    - workflow-step-api.hpi
+    - workflow-support.hpi
 
 - name: 创建 Jenkins Storage PV
   kubernetes.core.k8s:
