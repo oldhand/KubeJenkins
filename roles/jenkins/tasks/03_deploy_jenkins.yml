@@ -37,7 +37,6 @@
     - credentials.hpi
     - credentials-binding.hpi
     - display-url-api.hpi
-    - docker-commons.hpi
     - docker-plugin.hpi
     - docker-workflow.hpi
     - echarts-api.hpi
@@ -66,7 +65,6 @@
     - mina-sshd-api-common.hpi
     - mina-sshd-api-core.hpi
     - plain-credentials.hpi
-    - plugin-util-api.hpi
     - prism-api.hpi
     - scm-api.hpi
     - script-security.hpi
@@ -79,6 +77,36 @@
     - workflow-scm-step.hpi
     - workflow-step-api.hpi
     - workflow-support.hpi
+    - authentication-tokens.hpi
+    - docker-commons.jpi
+    - plugin-util-api.jpi
+    - okhttp-api.hpi
+    - durable-task.hpi
+    - docker-java-api.hpi
+    - token-macro.hpi
+    - ssh-slaves.hpi
+    - joda-time-api.hpi
+    - jersey2-api.hpi
+    - handy-uri-templates-2-api.hpi
+    - branch-api.hpi
+    - pipeline-model-definition.hpi
+    - workflow-cps.hpi
+    - workflow-durable-task-step.hpi
+    - cloudbees-folder.hpi
+    - workflow-basic-steps.hpi
+    - pipeline-model-extensions.hpi
+    - apache-httpcomponents-client-5-api.hpi
+    - commons-compress-api.hpi
+    - trilead-api.hpi
+    - json-path-api.hpi
+    - pipeline-stage-step.hpi
+    - pipeline-model-api.hpi
+    - workflow-multibranch.hpi
+    - pipeline-stage-tags-metadata.hpi
+    - pipeline-input-step.hpi
+    - pipeline-groovy-lib.hpi
+    - cloud-stats.hpi
+    - eddsa-api.hpi
 
 - name: 创建 Jenkins Storage PV
   kubernetes.core.k8s:
