@@ -7,14 +7,16 @@
   loop:
     - { kind: Deployment, name: "gitea" }
     - { kind: Deployment, name: "gitea-postgresql-ha-pgpool" }
+    - { kind: ReplicaSet, name: "gitea" }
     - { kind: ConfigMap, name: "kube-root-ca.crt" }
+    - { kind: Pod, name: "gitea" }
     - { kind: Secret, name: "gitea" }
     - { kind: Secret, name: "gitea-init" }
     - { kind: Secret, name: "gitea-inline-config" }
     - { kind: Secret, name: "sh.helm.release.v1.gitea.v1" }
-    - { kind: Service, name: "jenkins" }
-    - { kind: Service, name: "jenkins-http" }
-    - { kind: Service, name: "jenkins-ssh" }
+    - { kind: Service, name: "gitea" }
+    - { kind: Service, name: "gitea-http" }
+    - { kind: Service, name: "gitea-ssh" }
     - { kind: ServiceAccount, name: "default" }
     - { kind: PersistentVolumeClaim, name: "gitea-shared-storage" }
     - { kind: PersistentVolumeClaim, name: "data-gitea-postgresql" }

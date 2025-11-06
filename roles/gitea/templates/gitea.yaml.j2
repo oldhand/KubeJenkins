@@ -35,7 +35,7 @@ gitea:
       ENABLED: false  # 禁用缓存（无Valkey）
   admin:
     username: admin  # 初始管理员账号（可修改）
-    password: Admin@123  # 初始密码（部署后建议修改）
+    password: admin  # 初始密码（部署后建议修改）
     email: tezan@qq.com
 
 # 持久化配置（直接挂载hostPath，无PVC）
@@ -44,4 +44,4 @@ persistence:
   hostPath: /data/gitea  # 主机目录，自动创建
   accessModes:
     - ReadWriteOnce
-  size: 10Gi  # 仅作标识，不限制实际存储
+  size: 20Gi  # 仅作标识，不限制实际存储
