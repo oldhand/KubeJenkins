@@ -275,7 +275,7 @@
         namespace: jenkins
       data:
         user: admin
-        jenkins: "{{ master_node_ip.stdout }}:30101"
+        jenkinsUrl: "{{ master_node_ip.stdout }}:30101"
         token: "{{ jenkins_api_token.stdout }}"
   delegate_to: localhost
   run_once: true
