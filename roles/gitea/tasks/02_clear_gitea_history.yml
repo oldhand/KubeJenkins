@@ -18,6 +18,7 @@
     - { kind: Service, name: "gitea-http" }
     - { kind: Service, name: "gitea-ssh" }
     - { kind: ServiceAccount, name: "default" }
+    - { kind: Secret, name: "gitea-smtp-secret" }
     - { kind: PersistentVolumeClaim, name: "gitea-shared-storage" }
     - { kind: PersistentVolumeClaim, name: "data-gitea-postgresql" }
     - { kind: PersistentVolumeClaim, name: "valkey-data-gitea-valkey" }

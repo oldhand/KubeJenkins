@@ -34,6 +34,19 @@
   delegate_to: localhost
   run_once: true
 
+- name: 创建Gitea SMTP密码Secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: gitea-smtp-secret
+        namespace: gitea
+      type: Opaque
+      stringData:
+        smtp-pass: "ihpyiwqaoyedcaca"
+
 - name: 复制 gitea.yaml 配置文件到临时目录
   ansible.builtin.template:
     src: gitea.yaml.j2

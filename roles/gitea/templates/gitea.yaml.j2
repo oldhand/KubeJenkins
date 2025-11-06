@@ -28,6 +28,16 @@ valkey-cluster:
 # 内置SQLite数据库配置
 gitea:
   config:
+    mailer:
+      ENABLED: true
+      MAILER_TYPE: smtp
+      SMTP_ADDR: smtp.qq.com
+      SMTP_PORT: 465
+      SMTP_FROM: "Gitea <68594864@qq.com>"
+      SMTP_USER: "68594864@qq.com"
+      SMTP_SSL: false
+      SMTP_TLS: true
+      SEND_AS_PLAIN_TEXT: false
     database:
       DB_TYPE: sqlite3
       PATH: /data/gitea.db  # 数据库文件存储在挂载目录
@@ -35,8 +45,16 @@ gitea:
       ENABLED: false  # 禁用缓存（无Valkey）
   admin:
     username: admin  # 初始管理员账号（可修改）
-    password: !qaz2Wsx  # 初始密码（部署后建议修改）
-    email: tezan@qq.com
+    password: admin  # 初始密码（部署后建议修改）
+    email: 68594864@qq.com
+
+  # 从 Secret 注入 SMTP 密码（敏感信息）
+  additionalConfigFromEnvs:
+    - name: GITEA__MAILER__SMTP_PASS  # 对应 app.ini 的 [mailer] 中的 SMTP_PASS
+      valueFrom:
+        secretKeyRef:
+          name: gitea-smtp-secret     # 提前创建的存储 SMTP 密码的 Secret 名称
+          key: smtp-pass              # Secret 中存储密码的 key
 
 # 持久化配置（直接挂载hostPath，无PVC）
 persistence:
