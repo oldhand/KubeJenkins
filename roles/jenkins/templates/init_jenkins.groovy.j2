@@ -6,9 +6,30 @@ import hudson.security.FullControlOnceLoggedInAuthorizationStrategy
 import hudson.security.csrf.DefaultCrumbIssuer
 import jenkins.security.ApiTokenProperty
 import java.util.logging.Logger
+import java.util.UUID
+import java.security.MessageDigest
 import java.util.Locale
 
 def logger = Logger.getLogger("init_jenkins")
+
+def generateUuidMd5(logger) {
+    try {
+        UUID uuid = UUID.randomUUID()
+        String uuidStr = uuid.toString()
+        
+        MessageDigest md = MessageDigest.getInstance("MD5")
+        byte[] md5Bytes = md.digest(uuidStr.getBytes("UTF-8"))
+        
+        BigInteger bigInt = new BigInteger(1, md5Bytes)
+        String md5Str = bigInt.toString(16).padLeft(32, '0')
+        
+        logger.info("生成UUID: ${uuidStr}，对应的MD5值: ${md5Str}")
+        return md5Str
+    } catch (Exception e) {
+        logger.warning("生成UUID的MD5值失败，使用默认名称: ${e.message}")
+        return "default_token"
+    }
+}
 
 try {
     Jenkins instance = Jenkins.get()
@@ -36,18 +57,18 @@ try {
             tokenProperty = new ApiTokenProperty()
             adminUser.addProperty(tokenProperty)
         }
-        def tokenName = "admin"
-        def existingTokens = tokenProperty.tokenStore.getTokens()
-        if (existingTokens.containsKey(tokenName)) {
-            logger.info("名为 [${tokenName}] 的API Token已存在，不创建新Token")
-        } else {
-            def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
-            def tokenValue = newToken.plainValue
-            
-            def tokenFile = new File("/var/jenkins_home/api_token.txt")
-            tokenFile.text = tokenValue
-            logger.info("API Token已写入文件: ${tokenFile.absolutePath}")
-        }
+      
+
+        def tokenName = generateUuidMd5(logger)
+        def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
+        def tokenValue = newToken.plainValue
+		String yamlContent = """user: ${tokenName}
+token: ${tokenValue}
+"""
+        def tokenFile = new File("/var/jenkins_home/config.yaml")
+        tokenFile.text = yamlContent
+        logger.info("API Token已写入文件: ${tokenFile.absolutePath}")
+
         adminUser.save()
 
         // 3. 权限配置

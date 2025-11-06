@@ -9,7 +9,7 @@
     - { kind: Pod, name: "jenkins" }
     - { kind: Service, name: "jenkins" }
     - { kind: ConfigMap, name: "jenkins-init-scripts" }
-    - { kind: ConfigMap, name: "jenkins-api-token" }
+    - { kind: ConfigMap, name: "jenkins-config-yaml" }
     - { kind: PersistentVolumeClaim, name: "jenkins-pvc" }
   failed_when: false
   ignore_errors: yes

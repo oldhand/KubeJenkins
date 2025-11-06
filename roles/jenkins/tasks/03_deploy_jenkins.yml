@@ -244,12 +244,12 @@
 
 - name: 提取 Jenkins API Token
   shell: |
-    kubectl exec -n jenkins {{ jenkins_pod_info.resources[0].metadata.name }} -- cat /var/jenkins_home/api_token.txt
-  register: jenkins_api_token
+    kubectl exec -n jenkins {{ jenkins_pod_info.resources[0].metadata.name }} -- cat /var/jenkins_home/config.yaml
+  register: jenkins_config_yaml
   changed_when: false
   retries: 10  # 重试3次
   delay: 5    # 每次重试间隔5秒
-  until: jenkins_api_token.rc == 0  # 直到命令成功执行（返回码为0）
+  until: jenkins_config_yaml.rc == 0  # 直到命令成功执行（返回码为0）
   delegate_to: localhost
   run_once: true
 
@@ -271,11 +271,9 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
-        name: jenkins-api-token
+        name: jenkins-config-yaml
         namespace: jenkins
       data:
-        user: admin
-        jenkinsUrl: "{{ master_node_ip.stdout }}:30101"
-        token: "{{ jenkins_api_token.stdout }}"
+        config_yaml: "jenkinsUrl: http://{{ master_node_ip.stdout }}:30101\n{{ jenkins_config_yaml.stdout }}"
   delegate_to: localhost
   run_once: true
