@@ -79,8 +79,8 @@
     - workflow-step-api.hpi
     - workflow-support.hpi
     - authentication-tokens.hpi
-    - docker-commons.jpi
-    - plugin-util-api.jpi
+    - docker-commons.hpi
+    - plugin-util-api.hpi
     - okhttp-api.hpi
     - durable-task.hpi
     - docker-java-api.hpi
