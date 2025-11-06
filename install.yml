@@ -4,6 +4,8 @@
   roles:
 #     Install harbor for k8s
     - harbor
+#     Install gitea for k8s
+    - gitea
 #     Install jenkins for k8s
     - jenkins
 #     Install webssh2 for k8s

@@ -1,0 +1,23 @@
+---
+- name: 检查镜像文件 gitea_1.24.3.tar 是否存在
+  stat:
+    path: "{{ playbook_dir }}/gitea/{{ ansible_architecture }}/gitea_1.24.3.tar"
+  register: target_tar_stat
+  delegate_to: localhost
+  run_once: true
+
+- name: 解压镜像文件 gitea_1.24.3.tar.gz
+  shell: |
+    tar xzvf {{ playbook_dir }}/gitea/{{ ansible_architecture }}/gitea_1.24.3.tar.gz -C {{ playbook_dir }}/gitea/{{ ansible_architecture }}/
+  when: not target_tar_stat.stat.exists  # 仅tar不存在时执行
+  delegate_to: localhost
+  run_once: true
+
+- name: 复制 gitea_1.24.3.tar 镜像文件到临时目录
+  copy:
+    src: "{{ playbook_dir }}/gitea/{{ ansible_architecture }}/gitea_1.24.3.tar"
+    dest: "/tmp/gitea_1.24.3.tar"
+    mode: 0644
+
+- name: 加载 gitea_1.24.3.tar 镜像到Docker
+  shell: "docker load -i /tmp/gitea_1.24.3.tar"

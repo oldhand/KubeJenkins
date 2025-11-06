@@ -1,0 +1,38 @@
+#---
+- name: 清理 Gitea 资源(有命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} -n gitea --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} -n gitea --ignore-not-found
+  loop:
+    - { kind: Deployment, name: "gitea" }
+    - { kind: Deployment, name: "gitea-postgresql-ha-pgpool" }
+    - { kind: ConfigMap, name: "kube-root-ca.crt" }
+    - { kind: Secret, name: "gitea" }
+    - { kind: Secret, name: "gitea-init" }
+    - { kind: Secret, name: "gitea-inline-config" }
+    - { kind: Secret, name: "sh.helm.release.v1.gitea.v1" }
+    - { kind: Service, name: "jenkins" }
+    - { kind: Service, name: "jenkins-http" }
+    - { kind: Service, name: "jenkins-ssh" }
+    - { kind: ServiceAccount, name: "default" }
+    - { kind: PersistentVolumeClaim, name: "gitea-shared-storage" }
+    - { kind: PersistentVolumeClaim, name: "data-gitea-postgresql" }
+    - { kind: PersistentVolumeClaim, name: "valkey-data-gitea-valkey" }
+  failed_when: false
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+
+- name: 清理 Gitea 资源(无命名空间)
+  ansible.builtin.shell: |
+    kubectl get {{ item.kind }} --no-headers -o custom-columns=":metadata.name" \
+    | grep -E "^{{ item.name }}" \
+    | xargs --no-run-if-empty kubectl delete {{ item.kind }} --ignore-not-found
+  loop:
+    - { kind: PersistentVolume, name: "gitea-pv" }
+  failed_when: false
+  ignore_errors: yes
+  delegate_to: localhost
+  run_once: true
+

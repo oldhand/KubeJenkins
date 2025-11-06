@@ -1,0 +1,4 @@
+---
+- include_tasks: 01_deploy_gitea_images.yml
+- include_tasks: 02_clear_gitea_history.yml
+- include_tasks: 03_deploy_gitea.yml

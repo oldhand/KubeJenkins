@@ -1,0 +1,47 @@
+# Gitea离线部署配置（单节点+内置SQLite+hostPath挂载）
+image:
+  registry: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io
+  repository: gitea/gitea
+  tag: 1.24.3
+  rootless: false
+  pullPolicy: Never  # 仅使用本地镜像
+
+
+tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+# 禁用所有外部依赖
+postgresql:
+  enabled: false
+
+postgresql-ha:
+  enabled: false
+
+valkey:
+  enabled: false
+
+valkey-cluster:
+  enabled: false
+
+# 内置SQLite数据库配置
+gitea:
+  config:
+    database:
+      DB_TYPE: sqlite3
+      PATH: /data/gitea.db  # 数据库文件存储在挂载目录
+    cache:
+      ENABLED: false  # 禁用缓存（无Valkey）
+  admin:
+    username: admin  # 初始管理员账号（可修改）
+    password: Admin@123  # 初始密码（部署后建议修改）
+    email: tezan@qq.com
+
+# 持久化配置（直接挂载hostPath，无PVC）
+persistence:
+  enabled: true
+  hostPath: /data/gitea  # 主机目录，自动创建
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi  # 仅作标识，不限制实际存储
