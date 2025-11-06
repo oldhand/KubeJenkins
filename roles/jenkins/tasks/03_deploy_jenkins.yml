@@ -207,7 +207,7 @@
       spec:
         type: NodePort
         selector:
-          name: jenkins
+          app: jenkins
         ports:
           - port: 8080
             targetPort: 8080
