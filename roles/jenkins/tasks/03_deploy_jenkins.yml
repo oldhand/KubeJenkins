@@ -252,7 +252,18 @@
   until: jenkins_api_token.rc == 0  # 直到命令成功执行（返回码为0）
   delegate_to: localhost
   run_once: true
-  
+
+- name: 获取主节点（控制平面）InternalIP
+  shell: |
+    kubectl get nodes -l node-role.kubernetes.io/control-plane -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}'
+  register: master_node_ip
+  changed_when: false
+  retries: 5  # 最多重试5次（应对节点未就绪的情况）
+  delay: 3    # 重试间隔3秒
+  until: master_node_ip.stdout != ""  # 直到获取到非空IP
+  delegate_to: localhost
+  run_once: true
+
 - name: 创建存储 Jenkins API Token 的 ConfigMap
   kubernetes.core.k8s:
     state: present
@@ -263,6 +274,8 @@
         name: jenkins-api-token
         namespace: jenkins
       data:
+        user: admin
+        jenkins: "{{ master_node_ip.stdout }}:30101"
         token: "{{ jenkins_api_token.stdout }}"
   delegate_to: localhost
   run_once: true
