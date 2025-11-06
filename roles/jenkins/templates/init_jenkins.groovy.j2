@@ -62,7 +62,7 @@ try {
         def tokenName = generateUuidMd5(logger)
         def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
         def tokenValue = newToken.plainValue
-		String yamlContent = """user: ${tokenName}
+		String yamlContent = """user: ${adminUsername}
 token: ${tokenValue}
 """
         def tokenFile = new File("/var/jenkins_home/config.yaml")
