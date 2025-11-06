@@ -37,12 +37,17 @@ try {
             adminUser.addProperty(tokenProperty)
         }
         def tokenName = "admin"
-        def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
-        def tokenValue = newToken.plainValue
-
-        def tokenFile = new File("/var/jenkins_home/api_token.txt")
-        tokenFile.text = tokenValue
-        logger.info("API Token已写入文件: ${tokenFile.absolutePath}")
+        def existingTokens = tokenProperty.tokenStore.getTokens()
+        if (existingTokens.containsKey(tokenName)) {
+            logger.info("名为 [${tokenName}] 的API Token已存在，不创建新Token")
+        } else {
+            def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
+            def tokenValue = newToken.plainValue
+            
+            def tokenFile = new File("/var/jenkins_home/api_token.txt")
+            tokenFile.text = tokenValue
+            logger.info("API Token已写入文件: ${tokenFile.absolutePath}")
+        }
         adminUser.save()
 
         // 3. 权限配置
