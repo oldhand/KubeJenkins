@@ -1,31 +1,76 @@
-// 管理员账号密码配置
-import jenkins.model.*
-import hudson.security.*
-import jenkins.security.s2m.AdminWhitelistRule
+// 管理员账号配置、API Token生成（兼容旧版本Jenkins）
+import hudson.model.User
+import jenkins.model.Jenkins
+import hudson.security.HudsonPrivateSecurityRealm
+import hudson.security.FullControlOnceLoggedInAuthorizationStrategy
+import hudson.security.csrf.DefaultCrumbIssuer
+import jenkins.security.ApiTokenProperty
+import java.util.logging.Logger
+import java.util.Locale
 
-def instance = Jenkins.getInstance()
+def logger = Logger.getLogger("init_jenkins")
 
-// 设置管理员账号密码
-def hudsonRealm = new HudsonPrivateSecurityRealm(false)
-hudsonRealm.createAccount("{{ jenkins.admin.username }}", "{{ jenkins.admin.password }}")
-instance.setSecurityRealm(hudsonRealm)
+try {
+    Jenkins instance = Jenkins.get()
+    synchronized (instance) {
+        // 1. 配置管理员账号
+        logger.info("开始配置管理员账号...") 
+        def hudsonRealm = new HudsonPrivateSecurityRealm(false)
+        def adminUsername = "{{ jenkins.admin.username | default('admin') }}"
+        def adminPassword = "{{ jenkins.admin.password | default('admin') }}"
+        if (User.getAll().find { it.id == adminUsername } == null) {
+            hudsonRealm.createAccount(adminUsername, adminPassword)
+            logger.info("管理员账号 [${adminUsername}] 创建成功")
+        } else {
+            logger.info("管理员账号 [${adminUsername}] 已存在")
+        }
+        instance.setSecurityRealm(hudsonRealm)
+        
 
-// 权限配置（允许管理员全权管理）
-def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
-strategy.setAllowAnonymousRead(false)
-instance.setAuthorizationStrategy(strategy)
+        // 2. 生成API Token（核心功能）
+        User adminUser = User.get(adminUsername, true)
+        logger.info("为用户 [${adminUsername}] 生成API Token...")
 
-// 配置中文语言
-def locale = new Locale("zh", "CN")
-def descriptor = instance.getDescriptorByType(hudson.model.DisplayNameProvider.DescriptorImpl.class)
-descriptor.setDefaultLocale(locale.toString())
+        ApiTokenProperty tokenProperty = adminUser.getProperty(ApiTokenProperty.class)
+        if (tokenProperty == null) {
+            tokenProperty = new ApiTokenProperty()
+            adminUser.addProperty(tokenProperty)
+        }
+        def tokenName = "admin"
+        def newToken = tokenProperty.tokenStore.generateNewToken(tokenName)
+        def tokenValue = newToken.plainValue
 
-// 禁用自动更新
-def updateCenter = Jenkins.instance.getUpdateCenter()
-updateCenter.setNeverUpdate(true)
+        def tokenFile = new File("/var/jenkins_home/api_token.txt")
+        tokenFile.text = tokenValue
+        logger.info("API Token已写入文件: ${tokenFile.absolutePath}")
+        adminUser.save()
 
-// 禁用插件自动更新检查
-Jenkins.instance.setDisableAutomaticSetupWizard(true)
+        // 3. 权限配置
+        logger.info("配置管理员权限策略...")
 
-instance.save()
-Jenkins.instance.restart()
+        def strategy = new FullControlOnceLoggedInAuthorizationStrategy()
+        strategy.setAllowAnonymousRead(false)
+        instance.setAuthorizationStrategy(strategy)
+    
+        logger.info("启用CSRF保护，配置crumb生成器...")
+        instance.setCrumbIssuer(new DefaultCrumbIssuer(true)) // 启用默认crumb生成器
+
+
+        // 4. 简化语言配置（仅依赖系统属性）
+        logger.info("设置默认语言为中文...")
+        System.setProperty("user.language", "zh")
+        System.setProperty("user.country", "CN")
+
+        // 保存配置
+        instance.save()
+        logger.info("所有核心配置完成!!!")
+    }
+} catch (Exception e) {
+    logger.severe("初始化脚本执行失败: ${e.getMessage()}")
+    e.printStackTrace()
+    try {
+        Jenkins.get().save()
+    } catch (Exception ex) {
+        logger.severe("保存配置失败: ${ex.getMessage()}")
+    }
+}

@@ -61,6 +61,7 @@
     - json-api.hpi
     - junit.hpi
     - mailer.hpi
+    - matrix-auth.hpi
     - matrix-project.hpi
     - mina-sshd-api-common.hpi
     - mina-sshd-api-core.hpi
@@ -215,7 +216,7 @@
   run_once: true
 
 
-- name: 等待Jenkins Pod就绪
+- name: 等待 Jenkins Pod 就绪
   k8s_info:
     kind: Pod
     namespace: jenkins
@@ -231,3 +232,34 @@
   delegate_to: localhost
   run_once: true
 
+- name: 获取 Jenkins Pod 名称
+  k8s_info:
+    kind: Pod
+    namespace: jenkins
+    label_selectors:
+      - app=jenkins
+  register: jenkins_pod_info
+  delegate_to: localhost
+  run_once: true
+
+- name: 提取 Jenkins API Token
+  shell: |
+    kubectl exec -n jenkins {{ jenkins_pod_info.resources[0].metadata.name }} -- cat /var/jenkins_home/api_token.txt
+  register: jenkins_api_token
+  delegate_to: localhost
+  run_once: true
+  changed_when: false
+
+- name: 创建存储 Jenkins API Token 的 ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: jenkins-api-token
+        namespace: jenkins
+      data:
+        token: "{{ jenkins_api_token.stdout }}"
+  delegate_to: localhost
+  run_once: true
