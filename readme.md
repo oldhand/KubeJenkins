@@ -77,9 +77,9 @@
     3. 验证功能：创建测试任务并执行，确认构建流程正常
 
 ### 2. Harbor验证
-- **访问地址**：`https://192.168.0.139:<harbor-nodePort>`（端口查询：`kubectl get svc -n harbor`）
+- **访问地址**：`https://192.168.0.139:30100`
 - **验证步骤**：
-    1. 使用初始账号`admin`及配置的密码登录
+    1. 使用初始账号`admin`及配置的密码登录，默认Harbor12345
     2. 配置Docker信任仓库：在节点`/etc/docker/daemon.json`添加`"insecure-registries": ["192.168.0.139:<端口>"]`，重启Docker
     3. 测试推送：`docker tag hello-world 192.168.0.139:<端口>/test/hello-world && docker push 192.168.0.139:<端口>/test/hello-world`，确认推送成功
 
