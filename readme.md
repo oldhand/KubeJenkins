@@ -52,20 +52,14 @@
       编辑项目根目录下的`hosts.ini`文件，单节点集群配置示例：
       ```ini
       [k8s]
-      192.168.0.139  is_master=1  is_worker=1  is_init=1  ansible_user="root"  ansible_password=""  ansible_ssh_common_args="-o StrictHostKeyChecking=no"
+      192.168.0.139  ansible_user="root"  ansible_password=""  ansible_ssh_common_args="-o StrictHostKeyChecking=no"
       ```  
       参数说明：
         - `[k8s]`：节点组名称（与部署脚本匹配，不可随意修改）
         - `192.168.0.139`：目标节点IP地址
-        - `is_master=1`：标记为控制节点
-        - `is_worker=1`：标记为工作节点（单节点需同时开启）
-        - `is_init=1`：标记为初始化节点（集群唯一）
         - `ansible_user`：SSH登录用户名（默认root）
         - `ansible_password`：SSH登录密码（为空时使用密钥认证）
         - `ansible_ssh_common_args`：禁用SSH主机密钥检查（首次连接无需手动确认）
-    - 根据需求修改角色配置（可选）：
-        - 角色参数：修改`roles/<角色名>/templates/`下的配置模板
-    - 离线环境准备：将镜像包（`.tar`或分卷文件）放入对应角色的`files/`目录
 
 3. **执行部署**
     - 赋予部署脚本执行权限：`chmod +x install.sh`
@@ -114,9 +108,7 @@
 ## 注意事项
 
 - `hosts.ini`中`[k8s]`节点组名称不可修改，否则部署脚本无法识别目标节点
-- 单节点集群需同时设置`is_master=1`和`is_worker=1`，否则组件可能部署失败
-- 若使用密钥认证，需确保部署节点的`~/.ssh/id_rsa`公钥已添加至目标节点的`~/.ssh/authorized_keys`
 - 服务默认通过NodePort暴露，端口映射：Jenkins(30101)、WebSSH2(30102)、Gitea(30103)
 - 所有数据默认存储在节点`/data`目录，建议定期备份该目录
-- 部署失败时，可通过`kubectl logs <pod名称> -n <命名空间>`或`deploy.log`日志文件排查问题
+- 部署失败时，可通过`kubectl logs <pod名称> -n <命名空间>`排查问题
 - 如需重新部署，直接执行`./install.sh`即可，脚本会自动清理历史资源后重新部署
