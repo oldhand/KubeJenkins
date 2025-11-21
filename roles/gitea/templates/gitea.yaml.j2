@@ -45,7 +45,7 @@ gitea:
       ENABLED: false  # 禁用缓存（无Valkey）
   admin:
     username: admin  # 初始管理员账号（可修改）
-    password: admin  # 初始密码（部署后建议修改）
+    password: admin1234  # 初始密码（部署后建议修改）
     email: 68594864@qq.com
 
   # 从 Secret 注入 SMTP 密码（敏感信息）
@@ -63,3 +63,12 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 20Gi  # 仅作标识，不限制实际存储
+
+
+resources:
+   limits:
+     cpu: 500m
+     memory: 512Mi
+   requests:
+     cpu: 100m
+     memory: 256Mi
