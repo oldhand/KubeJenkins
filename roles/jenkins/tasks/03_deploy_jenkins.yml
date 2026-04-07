@@ -227,14 +227,11 @@
   changed_when: false
 
 - name: 获取 Jenkins Pod 名称
-  k8s_info:
-    kind: Pod
-    namespace: jenkins
-    label_selectors:
-      - app=jenkins
-  register: jenkins_pod_info
+  shell: "kubectl get pods -n jenkins -l app=jenkins -o jsonpath='{.items[0].metadata.name}'"
+  register: jenkins_pod_info_shell
   delegate_to: localhost
   run_once: true
+  changed_when: false
 
 - name: 提取 Jenkins API Token
   shell: |
