@@ -217,25 +217,17 @@
 
 
 - name: 等待 Jenkins Pod 就绪
-  k8s_info:
-    kubeconfig: /etc/kubernetes/admin.conf
-    kind: Pod
-    namespace: jenkins
-    label_selectors:
-      - app=jenkins
-  register: jenkins_pod
-  until: >
-    jenkins_pod.resources is defined 
-    and jenkins_pod.resources | length > 0 
-    and jenkins_pod.resources[0].status.phase == 'Running'
-  retries: 30  # 最多重试30次
-  delay: 10    # 每次间隔10秒
+  shell: "kubectl get pods -n jenkins -l app=jenkins -o jsonpath='{.items[0].status.phase}'"
+  register: jenkins_pod_status
+  until: jenkins_pod_status.stdout == 'Running'
+  retries: 30
+  delay: 10
   delegate_to: localhost
   run_once: true
+  changed_when: false
 
 - name: 获取 Jenkins Pod 名称
   k8s_info:
-    kubeconfig: /etc/kubernetes/admin.conf
     kind: Pod
     namespace: jenkins
     label_selectors:
