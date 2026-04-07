@@ -218,6 +218,7 @@
 
 - name: 等待 Jenkins Pod 就绪
   k8s_info:
+    kubeconfig: /etc/kubernetes/admin.conf
     kind: Pod
     namespace: jenkins
     label_selectors:
@@ -234,6 +235,7 @@
 
 - name: 获取 Jenkins Pod 名称
   k8s_info:
+    kubeconfig: /etc/kubernetes/admin.conf
     kind: Pod
     namespace: jenkins
     label_selectors:
