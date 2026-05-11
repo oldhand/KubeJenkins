@@ -164,7 +164,7 @@
           app: "harbor"
         ports:
           - port: 80
-            name: HarborWebUI
+            name: harbor-web-ui
   run_once: true
 
 - name: 等待Harbor所有Pod就绪
