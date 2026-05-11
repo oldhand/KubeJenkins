@@ -149,6 +149,24 @@
     - "'already exists' not in install_harbor.stderr"
   run_once: true
 
+
+- name: "创建Harbor Headless Service"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      kind: Service
+      metadata:
+        name: "harbor-server-headless"
+        namespace: "harbor"
+      spec:
+        clusterIP: None
+        selector:
+          app: "harbor"
+        ports:
+          - port: 80
+            name: HarborWebUI
+  run_once: true
+
 - name: 等待Harbor所有Pod就绪
   kubernetes.core.k8s_info:
     kind: Pod
@@ -159,3 +177,7 @@
     harbor_pods.resources | map(attribute='status.phase') | unique == ['Running']
   retries: 30  # 重试30次
   delay: 10    # 每次间隔10秒
+
+
+
+
