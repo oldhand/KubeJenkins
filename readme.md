@@ -27,7 +27,7 @@
     - 集群状态：所有节点处于`Ready`状态（可通过`kubectl get nodes`验证）
     - 节点资源：单节点至少2核4G内存，支持单节点集群（同时作为控制节点和工作节点）
     - 存储要求：集群已配置默认存储类（如NFS、LocalPV），或节点`/data`目录预留至少100GB可用空间（用于数据持久化）
-    - 网络要求：节点开放30100-30104端口（NodePort范围）及组件通信所需端口（如Harbor的443、5000等）
+    - 网络要求：节点开放30100-30103端口（NodePort范围）及组件通信所需端口（如Harbor的443、5000等）
 
 2. **工具依赖**
     - Helm：v3.0.0+（已安装在部署节点，用于Harbor和Gitea的Chart部署）
@@ -77,10 +77,10 @@
     3. 验证功能：创建测试任务并执行，确认构建流程正常
 
 ### 2. Harbor验证
-- **访问地址**：`https://192.168.0.139:30100`
+- **访问地址**：`http://192.168.0.139:30100`
 - **验证步骤**：
     1. 使用初始账号`admin`及配置的密码登录，默认Harbor12345
-    2. 默认使用Chart自动生成的自签名证书；配置Docker信任仓库：在节点`/etc/docker/daemon.json`添加`"insecure-registries": ["192.168.0.139:30100"]`，重启Docker
+    2. 配置Docker信任仓库：在节点`/etc/docker/daemon.json`添加`"insecure-registries": ["192.168.0.139:30100"]`，重启Docker
     3. 测试推送：`docker tag hello-world 192.168.0.139:30100/test/hello-world && docker push 192.168.0.139:30100/test/hello-world`，确认推送成功
 
 ### 3. WebSSH2验证
@@ -108,7 +108,7 @@
 ## 注意事项
 
 - `hosts.ini`中`[k8s]`节点组名称不可修改，否则部署脚本无法识别目标节点
-- 服务默认通过NodePort暴露，端口映射：Harbor HTTPS(30100)、Jenkins(30101)、WebSSH2(30102)、Gitea(30103)、Harbor HTTP(30104)
+- 服务默认通过NodePort暴露，端口映射：Harbor(30100)、Jenkins(30101)、WebSSH2(30102)、Gitea(30103)
 - 所有数据默认存储在节点`/data`目录，建议定期备份该目录
 - 部署失败时，可通过`kubectl logs <pod名称> -n <命名空间>`排查问题
 - 如需重新部署，直接执行`./install.sh`即可，脚本会自动清理历史资源后重新部署
