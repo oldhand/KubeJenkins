@@ -1,0 +1,9 @@
+---
+# Harbor access settings
+harbor_tls_enabled: true
+harbor_tls_cert_source: auto
+harbor_http_node_port: 30104
+harbor_https_node_port: 30100
+harbor_external_url_scheme: "{{ 'https' if harbor_tls_enabled | bool else 'http' }}"
+harbor_external_url_port: "{{ harbor_https_node_port if harbor_tls_enabled | bool else harbor_http_node_port }}"
+
