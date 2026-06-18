@@ -19,6 +19,7 @@ expose:
     ports:
       http:
         port: 80  # 服务内部端口（集群内访问用）
+        nodePort: {{ harbor_http_node_port | default(30104) }}  # 节点暴露的HTTP端口（需在30000-32767之间）
 {% if harbor_tls_enabled | default(true) | bool %}
       https:
         port: 443  # 服务内部HTTPS端口
